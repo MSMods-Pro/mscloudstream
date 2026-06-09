@@ -57,8 +57,8 @@ class BuiltInProvider : MediaProvider {
 
     override suspend fun load(url: String): LoadResponse {
         return LoadResponse(
-            title = "Sample Detail View ($url)",
-            posterUrl = "https://image.tmdb.org/t/p/w500/8cdWjvZQUExUUTzyp4t6EDMubfO.jpg",
+            title = "", // Let DetailScreen use the original title
+            posterUrl = null, // Let DetailScreen use the original poster
             backgroundUrl = "https://image.tmdb.org/t/p/original/9l1eZiJHmhr5jIlthMdJN5X0NNn.jpg",
             plot = "This is a detailed description of the selected movie or TV show. It contains in-depth plot details, an engaging summary, and deep lore that gives the user an immersive context about the cinematic universe they are about to experience.",
             tags = listOf("Action", "Adventure", "Sci-Fi", "Fantasy", "Drama"),

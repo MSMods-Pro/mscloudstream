@@ -128,7 +128,7 @@ fun AppNavigation() {
             ) { backStackEntry ->
                 val url = Uri.decode(backStackEntry.arguments?.getString("url") ?: "")
                 val providerName = Uri.decode(backStackEntry.arguments?.getString("providerName") ?: "")
-                PlayerScreen(url, providerName)
+                PlayerScreen(navController, url, providerName)
             }
         }
     }

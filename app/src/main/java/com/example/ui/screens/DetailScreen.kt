@@ -68,7 +68,7 @@ fun DetailScreen(navController: NavController, title: String, posterUrl: String,
                 CircularProgressIndicator()
             }
         } else {
-            val displayTitle = details?.title ?: title
+            val displayTitle = if (details?.title.isNullOrEmpty()) title else details?.title!!
             val displayPoster = details?.posterUrl ?: posterUrl
             val backgroundUrl = details?.backgroundUrl ?: displayPoster
 

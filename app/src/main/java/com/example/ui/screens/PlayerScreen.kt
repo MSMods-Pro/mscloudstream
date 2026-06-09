@@ -16,8 +16,12 @@ import androidx.media3.ui.PlayerView
 import com.example.extensions.ExtensionManager
 import com.example.extensions.VideoLink
 
+import androidx.navigation.NavController
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+
 @Composable
-fun PlayerScreen(url: String, providerName: String) {
+fun PlayerScreen(navController: NavController, url: String, providerName: String) {
     var videoLinks by remember { mutableStateOf<List<VideoLink>?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current
@@ -48,7 +52,7 @@ fun PlayerScreen(url: String, providerName: String) {
         } else {
             val videoUrl = videoLinks!!.firstOrNull()?.url
             if (videoUrl != null) {
-                val exoPlayer = remember {
+                val exoPlayer = remember(videoUrl) {
                     ExoPlayer.Builder(context).build().apply {
                         setMediaItem(MediaItem.fromUri(videoUrl))
                         prepare()
@@ -56,7 +60,7 @@ fun PlayerScreen(url: String, providerName: String) {
                     }
                 }
 
-                DisposableEffect(Unit) {
+                DisposableEffect(videoUrl) {
                     onDispose {
                         exoPlayer.release()
                     }
@@ -66,6 +70,7 @@ fun PlayerScreen(url: String, providerName: String) {
                     factory = { ctx ->
                         PlayerView(ctx).apply {
                             player = exoPlayer
+                            keepScreenOn = true
                         }
                     },
                     modifier = Modifier.fillMaxSize()
@@ -73,6 +78,17 @@ fun PlayerScreen(url: String, providerName: String) {
             } else {
                 Text("No playable links found", color = Color.White)
             }
+        }
+        
+        // Back Button Overlay
+        IconButton(
+            onClick = { navController.popBackStack() },
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(16.dp)
+                .background(Color.Black.copy(alpha = 0.5f), shape = androidx.compose.foundation.shape.CircleShape)
+        ) {
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
         }
     }
 }
