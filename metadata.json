@@ -1,0 +1,6 @@
+{
+  "name": "MSCloudStream",
+  "description": "Dynamic plugin/extension system for media scraping",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
