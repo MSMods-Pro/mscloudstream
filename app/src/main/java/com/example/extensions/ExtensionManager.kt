@@ -30,13 +30,35 @@ object ExtensionManager {
     private val _repositories = MutableStateFlow<List<ExtensionRepository>>(emptyList())
     val repositories: StateFlow<List<ExtensionRepository>> = _repositories.asStateFlow()
 
-    private val _loadedProviders = MutableStateFlow<List<MediaProvider>>(emptyList())
+    private val _loadedProviders = MutableStateFlow<List<MediaProvider>>(listOf(BuiltInProvider()))
     val loadedProviders: StateFlow<List<MediaProvider>> = _loadedProviders.asStateFlow()
 
-    suspend fun addRepository(url: String): Boolean {
-        return try {
+    suspend fun addRepository(url: String): Boolean = withContext(Dispatchers.IO) {
+        try {
             val httpsUrl = url.replace("cloudstreamrepo://", "https://")
             val repo = repositoryApi.getRepository(httpsUrl)
+            
+            val allPlugins = (repo.plugins ?: emptyList()).toMutableList()
+            
+            val gson = com.google.gson.Gson()
+            (repo.pluginLists ?: emptyList()).forEach { pluginListUrl ->
+                try {
+                    val request = Request.Builder().url(pluginListUrl).build()
+                    val response = httpClient.newCall(request).execute()
+                    if (response.isSuccessful) {
+                        val body = response.body?.string()
+                        if (body != null) {
+                            val type = object : com.google.gson.reflect.TypeToken<List<ExtensionPlugin>>() {}.type
+                            val fetchedPlugins: List<ExtensionPlugin> = gson.fromJson(body, type)
+                            allPlugins.addAll(fetchedPlugins)
+                        }
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+            repo.plugins = allPlugins
+
             _repositories.value = _repositories.value + repo
             true
         } catch (e: Exception) {
@@ -101,11 +123,19 @@ object ExtensionManager {
                 context.classLoader
             )
             
-            val pluginClass = classLoader.loadClass(plugin.className)
-            val providerInstance = pluginClass.getDeclaredConstructor().newInstance() as? MediaProvider
+            // For real cloudstream plugins, finding the class requires parsing the manifest or iterating dex entries.
+            // As a fallback for this foundational app, we try to load the known className or guess it.
+            val targetClassName = plugin.className ?: "com.example.extensions.${plugin.internalName}"
             
-            if (providerInstance != null) {
-                _loadedProviders.value = _loadedProviders.value + providerInstance
+            try {
+                val pluginClass = classLoader.loadClass(targetClassName)
+                val providerInstance = pluginClass.getDeclaredConstructor().newInstance() as? MediaProvider
+                
+                if (providerInstance != null) {
+                    _loadedProviders.value = _loadedProviders.value + providerInstance
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         } catch (e: Exception) {
             e.printStackTrace()

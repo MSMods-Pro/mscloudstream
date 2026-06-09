@@ -6,13 +6,19 @@ data class ExtensionRepository(
     @SerializedName("name") val name: String,
     @SerializedName("description") val description: String? = null,
     @SerializedName("author") val author: String? = null,
-    @SerializedName("plugins") val plugins: List<ExtensionPlugin> = emptyList()
+    @SerializedName("plugins") var plugins: List<ExtensionPlugin> = emptyList(),
+    @SerializedName("pluginLists") val pluginLists: List<String> = emptyList()
 )
 
 data class ExtensionPlugin(
-    @SerializedName("id") val id: String,
+    @SerializedName("internalName") val internalName: String? = null,
     @SerializedName("name") val name: String,
-    @SerializedName("version") val version: String,
-    @SerializedName("url") val url: String, // Download URL for the APK/JAR
-    @SerializedName("className") val className: String // The entrypoint class implementing MediaProvider
-)
+    @SerializedName("version") val version: String? = null,
+    @SerializedName("url") val url: String,
+    @SerializedName("jarUrl") val jarUrl: String? = null,
+    @SerializedName("className") val className: String? = null,
+    @SerializedName("description") val description: String? = null
+) {
+    val id: String
+        get() = internalName ?: name
+}
